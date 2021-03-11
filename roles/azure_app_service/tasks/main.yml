@@ -1,0 +1,37 @@
+---
+- name: Create App Service Plan
+  azure_rm_appserviceplan:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_webapp_plan }}"
+    location: "{{ az_region }}"
+    is_linux: true
+    sku: S1
+    number_of_workers: 1
+- name: Create App Service on Linux
+  azure_rm_webapp:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_webapp }}"
+    plan: "{{ az_webapp_plan }}"
+    #app_settings:
+      #remove OIDC_CLIENT_CALLBACK after v2 release. callback path will be defined on server, not here
+    #  OIDC_CLIENT_CALLBACK: "https://{{ uihost }}/oid_callback"
+    #  OIDC_CLIENT_ID: "{{ oidc_client_id }}"
+    #  OIDC_CLIENT_SECRET: "{{ oidc_client_secret }}"
+    #  SESSION_SECRET:  "{{ session_secret }}"
+    #  OIDCHOST: "{{ oidchost }}"
+    #  UIHOST: "https://{{ uihost }}"
+    #  MANAGEMENT_API_CLIENT_ID: "{{ management_api_client_id }}"
+    #  MANAGEMENT_API_CLIENT_SECRET: "{{ management_api_client_secret }}"
+- name: Activate deployment from docker registry
+  command: "az webapp config container set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --docker-custom-image-name hsldevcom/digitransit-{{ az_project }}:{{ docker_tag }} --docker-registry-server-user  {{ username }} --docker-registry-server-password {{ passwd }}"
+- name: Activate logging
+  command: "az webapp log config -n {{ az_webapp }} -g {{ az_resource_group }} --web-server-logging filesystem"
+#- name: Activate continuous deployment
+#  command: "az webapp deployment container config --enable-cd true --name  {{ az_webapp }} --resource-group {{ az_resource_group }}"
+#  register: cd_output
+#- set_fact:
+#    js_output: "{{ cd_output.stdout|from_json }}"
+#- name: Create webhook
+#  command: "az acr webhook create --registry {{ az_registry }} --name {{ az_webapp }}WebHook --uri {{ js_output.CI_CD_URL }} --actions push"
+#- name: Add hostname
+#  command: "az webapp config hostname add --hostname {{ uihost }} --resource-group {{ az_resource_group }} --webapp-name {{ az_webapp }}"

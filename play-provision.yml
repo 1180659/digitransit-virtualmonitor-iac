@@ -1,0 +1,9 @@
+- name:
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_resourcegroups
+#    - azure_registry
+    - azure_app_service

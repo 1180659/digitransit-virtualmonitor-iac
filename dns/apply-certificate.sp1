@@ -1,0 +1,92 @@
+<#
+    .DESCRIPTION
+        Gets a certificate from Azure Key Vault and applies it to Azure Web Application
+
+    .PARAMETER KeyvaultName
+        The name of the Azure Key Vault to get the certificate from
+
+    .PARAMETER App
+        The name of the target Azure Web App
+
+    .PARAMETER ResourceGroup
+        The name of the resource group where Azure Web App resides
+
+    .PARAMETER CertificateName
+        The name of the certificate in Azure Key Vault
+
+    .NOTES
+        AUTHOR: Jyrki Ruuskanen
+        LASTEDIT: June 6, 2019 Vesa Meskanen
+#>
+
+param (
+    [parameter(Mandatory=$false)]
+        [String] $KeyvaultName = "",
+    [parameter(Mandatory=$false)]
+        [String] $App = "virtualmonitorApp",
+    [parameter(Mandatory=$false)]
+        [String] $ResourceGroup = "virtualMonitorGroup",
+    [parameter(Mandatory=$false)]
+        [String] $CertificateName = "",
+    [parameter(Mandatory=$false)]
+        [String] $Domain = ""
+)
+
+$connectionName = "AzureRunAsConnection"
+try {
+    # Get the connection "AzureRunAsConnection "
+    $servicePrincipalConnection=Get-AutomationConnection -Name $connectionName
+
+    "Logging in to Azure..."
+    Add-AzAccount `
+        -ServicePrincipal `
+        -TenantId $servicePrincipalConnection.TenantId `
+        -ApplicationId $servicePrincipalConnection.ApplicationId `
+        -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
+} catch {
+    if (!$servicePrincipalConnection) {
+        $ErrorMessage = "Connection $connectionName not found."
+        throw $ErrorMessage
+    } else {
+        Write-Error -Message $_.Exception
+        throw $_.Exception
+    }
+}
+
+Function Get-SPAccessToken() {
+    param(
+        [parameter(Mandatory=$true)][string]$spApplicationId
+    )
+
+    $cache = (Get-AzContext).tokencache
+    $cacheItem = $cache.ReadItems() | Where-Object { $_.ClientId -eq $spApplicationId } | Select-Object -First 1
+
+    return $cacheItem.AccessToken
+}
+
+Function Get-AccessToken() {
+    $tenantId = (Get-AzContext).Tenant.Id
+
+    $cache = (Get-AzContext).tokencache
+    $cacheItem = $cache.ReadItems() | Where-Object { $_.TenantId -eq $tenantId } | Select-Object -First 1
+
+    return $cacheItem.AccessToken
+}
+
+#Get certificate from Key Vault as a secret (or we won't get the private key)
+$certsecret = Get-AzKeyVaultSecret -VaultName $KeyvaultName -Name $CertificateName
+
+#Get certificate password from Key Vault
+$pwsecret = Get-AzKeyVaultSecret -VaultName $KeyvaultName -Name "$CertificateName-pw"
+$password = $pwsecret.SecretValueText
+
+#Write password-protected PFX certificate to a temporary file
+$pfxPath = "temp.pfx"
+$pfxUnprotectedBytes = [Convert]::FromBase64String($certsecret.SecretValueText)
+$pfx = New-Object Security.Cryptography.X509Certificates.X509Certificate2
+$pfx.Import($pfxUnprotectedBytes, $null, [Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+$pfxProtectedBytes = $pfx.Export([Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12, $password)
+[IO.File]::WriteAllBytes($pfxPath, $pfxProtectedBytes)
+
+Write-Verbose "Binding certificate to the web app"
+New-AzWebAppSSLBinding -WebAppName $App -ResourceGroupName $ResourceGroup -Name $Domain -CertificateFilePath $pfxPath -CertificatePassword $password -SslState SniEnabled
