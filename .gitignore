@@ -1,1 +1,4 @@
 env/secrets.yml
+.idea/
+Pipfile
+requirements-azure.txt

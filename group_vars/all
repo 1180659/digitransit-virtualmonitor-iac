@@ -3,8 +3,6 @@
 
 az_project: "virtualmonitor"
 az_region: "westeurope"
-#az_registry_group: "{{ az_project }}RegistryGroup"
-#az_registry: "{{ az_project }}Reg"
-az_resource_group: "{{ az_environment }}-{{ az_project }}Group"
-az_webapp: "{{ az_environment }}-{{ az_project }}App"
-az_webapp_plan: "{{ az_environment }}-{{ az_project }}Plan"
+az_resource_group: "{{ az_project }}-rg"
+az_webapp: "{{ az_project }}-app"
+az_webapp_plan: "{{ az_project }}-plan"
