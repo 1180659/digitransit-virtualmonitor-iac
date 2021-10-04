@@ -1,5 +1,0 @@
----
-#Prod environment specific variables here
-
-docker_tag: prod
-
