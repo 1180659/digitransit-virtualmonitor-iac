@@ -4,6 +4,7 @@
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_webapp_plan }}"
     location: "{{ az_region }}"
+    subscription_id: "{{ subscription_id }}"
     is_linux: true
     sku: S1
     number_of_workers: 1
@@ -12,31 +13,41 @@
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_webapp }}"
     plan: "{{ az_webapp_plan }}"
+    subscription_id: "{{ subscription_id }}"
     #### CURRENTLY IN PREVIEW (10/21)
 #- name: Activate deployment from Github Actions
 #  command: "az webapp deployment github-actions add  --token {{ github_token }} --repo <HSLdevcom/repo-name> -g {{ az_resource_group }} -b <branch> -n {{ az_webapp }}"
     #######
+- name: Activate deployment from docker registry
+  command: "az webapp config container set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --docker-custom-image-name hsldevcom/digitransit-{{ az_project }}:{{ docker_tag }} --docker-registry-server-user  {{ username }} --docker-registry-server-password {{ passwd }}"
 - name: Activate logging
-  command: "az webapp log config -n {{ az_webapp }} -g {{ az_resource_group }} --web-server-logging filesystem"
+  command: "az webapp log config -n {{ az_webapp }} -g {{ az_resource_group }} --subscription {{ subscription }} --web-server-logging filesystem"
 - name: Activate System managed identity
-  command: "az webapp identity assign -n {{ az_webapp }} -g {{ az_resource_group }}"
+  command: "az webapp identity assign -n {{ az_webapp }} -g {{ az_resource_group }} --subscription {{ subscription }}"
 - name: Add development slot
-  command: "az webapp deployment slot create --name  {{ az_webapp }} --resource-group {{ az_resource_group }} --slot dev"
-- name: Create Key Vault
-  command: "az keyvault create --name {{ keyvault_name }} --resource-group {{ az_keyvault_rg }} --location {{ az_region }}"
+  command: "az webapp deployment slot create --name  {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --slot {{ slot }}"
+- name: Activate System managed identity for the slot
+  command: "az webapp identity assign -n {{ az_webapp_slot }} -g {{ az_resource_group }} --subscription {{ subscription }}"
+- #name: Create Key Vault
+  #command: "az keyvault create --name {{ keyvault_name }} --resource-group {{ az_keyvault_rg }} --subscription {{ subscription }} --location {{ az_region }}"
   ## Secret creation example
 #- name: Create Secret FOO
-#  command: "az keyvault secret set --vault-name {{ keyvault_name }} --name <secret-name> --value <secret value>"
+#  command: "az keyvault secret set --vault-name {{ keyvault_name }} --subscription {{ subscription }}  --name <secret-name> --value <secret value>"
 - name: Get Web app Service principal id
-  command: "az webapp identity show --name {{ az_webapp }} --resource-group {{ az_resource_group }} --query principalId -o tsv"
-  register: out
+  command: "az webapp identity show --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
+  register: out1
 - name: Assign Privilages to Key vault
-  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out.stdout_lines.0 }} --secret-permissions get list"
+  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out1.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
+- name: Get Web app dev slot  Service principal id
+  command: "az webapp identity show --name {{ az_webapp_slot }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
+  register: out2
+- name: Assign Privilages to Key vault slot
+  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out2.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
 - name: Set DB_CONTAINER Setting
-  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --settings DB_CONTAINER={{ db_container }}"
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_CONTAINER={{ db_container }} --slot {{ slot }}"
 - name: Set DB_ENDPOINT Setting
-  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --settings DB_ENDPOINT={{ db_endpoint_dev }}"
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ENDPOINT={{ db_endpoint_dev }} --slot {{ slot }}"
 - name: Set DB_ID Setting
-  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --settings DB_ID={{ db_id_dev }}"
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ID={{ db_id_dev }} --slot {{ slot }}"
 - name: Set DB_KEY Setting
-  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --settings DB_KEY={{ db_key_dev }}"
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_KEY={{ db_key_dev }} --slot {{ slot }}"

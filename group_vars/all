@@ -3,7 +3,9 @@
 
 az_project: "virtualmonitor"
 az_region: "westeurope"
+slot: "dev"
 az_resource_group: "{{ az_project }}-rg"
 az_webapp: "{{ az_project }}-app"
+az_webapp_slot: "{{ az_webapp }}/slots/{{ slot }}"
 az_webapp_plan: "{{ az_project }}-plan"
 az_keyvault_rg: "{{ az_project }}-keyvault-rg"

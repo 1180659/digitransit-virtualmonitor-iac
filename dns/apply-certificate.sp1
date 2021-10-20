@@ -25,7 +25,7 @@ param (
     [parameter(Mandatory=$false)]
         [String] $App = "virtualmonitor-app",
     [parameter(Mandatory=$false)]
-        [String] $ResourceGroup = "virtualMonitor-gr",
+        [String] $ResourceGroup = "virtualMonitor-rg",
     [parameter(Mandatory=$false)]
         [String] $CertificateName = "",
     [parameter(Mandatory=$false)]
