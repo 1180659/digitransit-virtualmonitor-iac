@@ -3,7 +3,7 @@
   azure_rm_resourcegroup:
     name: "{{ az_resource_group }}"
     location: "{{ az_region }}"
-#- name: Create resource group for the docker image registry. Common for all environments.
-#  azure_rm_resourcegroup:
-#    name: "{{ az_registry_group }}"
-#    location: "{{ az_region }}"
+- name: Create resource group for the Key vault
+  azure_rm_resourcegroup:
+    name: "virtualmonitor-keyvault-rg"
+    location: "{{ az_region }}"

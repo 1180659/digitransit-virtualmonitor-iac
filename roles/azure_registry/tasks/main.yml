@@ -1,9 +1,0 @@
----
-#- name: Create an azure docker container registry
-#  azure_rm_containerregistry:
-#    resource_group: "{{ az_registry_group }}"
-#    name: "{{ az_registry }}"
-#    admin_user_enabled: true
-#  register: registry_settings
-#- debug:
-#    var: registry_settings

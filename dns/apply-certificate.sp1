@@ -16,16 +16,16 @@
 
     .NOTES
         AUTHOR: Jyrki Ruuskanen
-        LASTEDIT: June 6, 2019 Vesa Meskanen
+        LASTEDIT: October 1, 2021 Janne Antikainen
 #>
 
 param (
     [parameter(Mandatory=$false)]
         [String] $KeyvaultName = "",
     [parameter(Mandatory=$false)]
-        [String] $App = "virtualmonitorApp",
+        [String] $App = "virtualmonitor-app",
     [parameter(Mandatory=$false)]
-        [String] $ResourceGroup = "virtualMonitorGroup",
+        [String] $ResourceGroup = "virtualMonitor-rg",
     [parameter(Mandatory=$false)]
         [String] $CertificateName = "",
     [parameter(Mandatory=$false)]

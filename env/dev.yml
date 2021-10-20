@@ -1,8 +1,0 @@
----
-#Dev environment specific variables here
-
-az_environment: dev
-docker_tag: next
-#oidc_client_id: 0000000000000000
-#oidchost: <host>
-#uihost: <hostofui>

@@ -1,9 +1,10 @@
 - name:
   hosts: localhost
+  collections:
+    - azure.azcollection
   connection: local
   gather_facts: false
 
   roles:
     - azure_resourcegroups
-#    - azure_registry
     - azure_app_service

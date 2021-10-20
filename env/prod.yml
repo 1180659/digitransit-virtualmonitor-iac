@@ -1,8 +1,0 @@
----
-#Prod environment specific variables here
-
-az_environment: prod
-docker_tag: prod
-#oidc_client_id: 0000000000000000
-#oidchost: <host>
-#uihost: <hostofui>

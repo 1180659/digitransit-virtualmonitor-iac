@@ -1,5 +1,7 @@
 - name:
   hosts: localhost
+  collections:
+    - azure.azcollection
   connection: local
   gather_facts: false
 

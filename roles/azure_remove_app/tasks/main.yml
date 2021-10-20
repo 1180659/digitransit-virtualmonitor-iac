@@ -5,5 +5,3 @@
     name: "{{ az_webapp }}"
     plan:  "{{ az_webapp_plan }}"
     state: absent
-#- name: Remove webhook
-#  command: "az acr webhook delete --name {{ az_webapp }}WebHook --registry {{ az_registry }}"
