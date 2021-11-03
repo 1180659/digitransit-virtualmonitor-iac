@@ -89,4 +89,4 @@ $pfxProtectedBytes = $pfx.Export([Security.Cryptography.X509Certificates.X509Con
 [IO.File]::WriteAllBytes($pfxPath, $pfxProtectedBytes)
 
 Write-Verbose "Binding certificate to the web app"
-New-AzWebAppSSLBinding -WebAppName $App -ResourceGroupName $ResourceGroup -Name $Domain -CertificateFilePath $pfxPath -CertificatePassword $password -SslState SniEnabled
+New-AzWebAppSSLBinding -WebAppName $App -ResourceGroupName $ResourceGroup -Slot $Slot -Name $Domain -CertificateFilePath $pfxPath -CertificatePassword $password -SslState SniEnabled

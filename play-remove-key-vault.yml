@@ -1,0 +1,9 @@
+- name:
+  hosts: localhost
+  collections:
+    - azure.azcollection
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_remove_key_vault
