@@ -1,0 +1,12 @@
+#- name: Create Cosmodb account
+#  command: az cosmosdb create --name {{ cosmosdb_account_name }} --resource-group {{ az_cosmos_resource_group }} --subscription {{ subscription_id }}
+- name: Create cosmodb database
+  command: az cosmosdb database create --name {{ cosmosdb_account_name }} --resource-group {{ az_cosmos_resource_group }} --db-name {{ cosmosdb_database_name }} --subscription {{ subscription_id }}
+- name: Create Monitor container
+  command: az cosmosdb sql container create -g {{ az_cosmos_resource_group }} -a {{ cosmosdb_account_name }} -d  {{ cosmosdb_database_name }}  -n monitors --partition-key-path "/contenthash" --subscription {{ subscription_id }}
+#- name: Autoscale for monitors
+#  command: az cosmosdb sql container throughput migrate --account-name {{ cosmosdb_account_name }} --database-name {{  cosmosdb_database_name }} --name monitors --resource-group {{ az_cosmos_resource_group }} --throughput-type autoscale --subscription  {{ subscription_id }}
+- name: Create Staticmonitor container
+  command: az cosmosdb sql container create -g {{ az_cosmos_resource_group }} -a {{ cosmosdb_account_name }} -d {{ cosmosdb_database_name }} -n staticMonitors --partition-key-path "/url" --subscription {{ subscription_id }}
+#- name: Autoscale for static monitors
+#  command: az cosmosdb sql container throughput migrate --account-name {{ cosmosdb_account_name }} --database-name {{  cosmosdb_database_name }} --name staticMonitors --resource-group {{ az_cosmos_resource_group }} --throughput-type autoscale --subscription  {{ subscription_id }}

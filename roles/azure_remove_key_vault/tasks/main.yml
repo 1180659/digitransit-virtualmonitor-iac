@@ -1,0 +1,2 @@
+- name: Delete Key vault
+  command: az keyvault delete --name {{ keyvault_name }} --resource-group {{ az_keyvault_rg }} --no-wait

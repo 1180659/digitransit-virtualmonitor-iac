@@ -14,6 +14,7 @@
     name: "{{ az_webapp }}"
     plan: "{{ az_webapp_plan }}"
     subscription_id: "{{ subscription_id }}"
+
     #### CURRENTLY IN PREVIEW (10/21)
 #- name: Activate deployment from Github Actions
 #  command: "az webapp deployment github-actions add  --token {{ github_token }} --repo <HSLdevcom/repo-name> -g {{ az_resource_group }} -b <branch> -n {{ az_webapp }}"
@@ -22,32 +23,64 @@
   command: "az webapp config container set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --docker-custom-image-name hsldevcom/digitransit-{{ az_project }}:{{ docker_tag }} --docker-registry-server-user  {{ username }} --docker-registry-server-password {{ passwd }}"
 - name: Activate logging
   command: "az webapp log config -n {{ az_webapp }} -g {{ az_resource_group }} --subscription {{ subscription }} --web-server-logging filesystem"
+
+  ## Prod
 - name: Activate System managed identity
   command: "az webapp identity assign -n {{ az_webapp }} -g {{ az_resource_group }} --subscription {{ subscription }}"
-- name: Add development slot
-  command: "az webapp deployment slot create --name  {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --slot {{ slot }}"
-- name: Activate System managed identity for the slot
-  command: "az webapp identity assign -n {{ az_webapp_slot }} -g {{ az_resource_group }} --subscription {{ subscription }}"
-- #name: Create Key Vault
-  #command: "az keyvault create --name {{ keyvault_name }} --resource-group {{ az_keyvault_rg }} --subscription {{ subscription }} --location {{ az_region }}"
-  ## Secret creation example
-#- name: Create Secret FOO
-#  command: "az keyvault secret set --vault-name {{ keyvault_name }} --subscription {{ subscription }}  --name <secret-name> --value <secret value>"
 - name: Get Web app Service principal id
   command: "az webapp identity show --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
   register: out1
 - name: Assign Privilages to Key vault
   command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out1.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
+
+  ## Dev slot
+- name: Add development slot
+  command: "az webapp deployment slot create --name  {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --slot {{ slot }}"
+- name: Activate System managed identity for the dev slot
+  command: "az webapp identity assign -n {{ az_webapp_slot }} -g {{ az_resource_group }} --subscription {{ subscription }}"
 - name: Get Web app dev slot  Service principal id
   command: "az webapp identity show --name {{ az_webapp_slot }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
   register: out2
-- name: Assign Privilages to Key vault slot
+- name: Assign Privilages to Key vault for dev slot
   command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out2.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
-- name: Set DB_CONTAINER Setting
+
+  ## Preprod slot
+- name: Add preprod slot
+  command: "az webapp deployment slot create --name  {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --slot {{ slot_preprod }}"
+- name: Activate System managed identity for the preprod slot
+  command: "az webapp identity assign -n {{ az_webapp_preprod }} -g {{ az_resource_group }} --subscription {{ subscription }}"
+- name: Get Web app preprod slot  Service principal id
+  command: "az webapp identity show --name {{ az_webapp_preprod }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
+  register: out3
+- name: Assign Privilages to Key vault preprod slot
+  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out3.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
+
+  ## DEV SETTINGS
+- name: Set DB_CONTAINER Setting for dev
   command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_CONTAINER={{ db_container }} --slot {{ slot }}"
-- name: Set DB_ENDPOINT Setting
+- name: Set DB_ENDPOINT Setting for dev
   command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ENDPOINT={{ db_endpoint_dev }} --slot {{ slot }}"
-- name: Set DB_ID Setting
+- name: Set DB_ID Setting for dev
   command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ID={{ db_id_dev }} --slot {{ slot }}"
-- name: Set DB_KEY Setting
+- name: Set DB_KEY Setting for development
   command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_KEY={{ db_key_dev }} --slot {{ slot }}"
+
+  ## PREPROD SETTINGS
+- name: Set DB_CONTAINER Setting for preprod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_CONTAINER={{ db_container }} --slot {{ slot_preprod }}"
+- name: Set DB_ENDPOINT Setting for preprod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ENDPOINT={{ db_endpoint_dev }} --slot {{ slot_preprod }}"
+- name: Set DB_ID_preprod Setting for preprod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ID={{ db_id_prod }} --slot {{ slot_preprod }} "
+- name: Set DB_KEY Setting for preprod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_KEY={{ db_key_dev }} --slot {{ slot_preprod }}"
+
+  ## PROD SETTINGS
+- name: Set DB_CONTAINER Setting for prod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_CONTAINER={{ db_container }}"
+- name: Set DB_ENDPOINT Setting for prod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ENDPOINT={{ db_endpoint_dev }}"
+- name: Set DB_ID_preprod Setting for prod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_ID={{ db_id_prod }}"
+- name: Set DB_KEY Setting for prod
+  command: "az webapp config appsettings set --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --settings DB_KEY={{ db_key_dev }}"

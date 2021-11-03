@@ -1,0 +1,2 @@
+- name: Delete Cosmos db database
+  command: az cosmosdb database delete --db-name {{ cosmosdb_database_name }} --name {{ cosmosdb_account_name }} --resource-group-name {{ az_cosmos_resource_group }} --subscription {{ subscription_id }} --yes

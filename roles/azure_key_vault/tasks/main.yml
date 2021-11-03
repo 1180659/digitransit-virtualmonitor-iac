@@ -1,0 +1,5 @@
+-name: Create Key Vault
+ command: "az keyvault create --name {{ keyvault_name }} --resource-group {{ az_keyvault_rg }} --subscription {{ subscription }} --location {{ az_region }}"
+  ## Secret creation example
+#- name: Create Secret FOO
+#  command: "az keyvault secret set --vault-name {{ keyvault_name }} --subscription {{ subscription }}  --name <secret-name> --value <secret value>"
