@@ -31,7 +31,7 @@
   command: "az webapp identity show --name {{ az_webapp }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
   register: out1
 - name: Assign Privilages to Key vault
-  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out1.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
+  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out1.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list --certificate-permissions get list"
 
   ## Dev slot
 - name: Add development slot
@@ -42,7 +42,7 @@
   command: "az webapp identity show --name {{ az_webapp_slot }} --resource-group {{ az_resource_group }} --subscription {{ subscription }} --query principalId -o tsv"
   register: out2
 - name: Assign Privilages to Key vault for dev slot
-  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out2.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list"
+  command: "az keyvault set-policy --name {{ keyvault_name }} --object-id {{ out2.stdout_lines.0 }} --subscription {{ subscription }} --secret-permissions get list --certificate-permissions get list"
 
   ## Preprod slot
 - name: Add preprod slot
